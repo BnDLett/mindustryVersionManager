@@ -1,0 +1,11 @@
+[Icon Theme]
+Name=mind_ver
+Comment=Icon for the mindustry version manager
+Directories=scalable/apps
+
+[scalable/apps]
+Size=40
+Type=Scalable
+MinSize=1
+MaxSize=256
+Context=Applications
