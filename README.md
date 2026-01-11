@@ -1,8 +1,8 @@
 # Mindustry Version Manager
 A program to switch between Mindustry versions and profiles \
-![alphaaaa](mind_ver/assets/alphaaaa_128.png) \
-![demo](https://youtu.be/A8TwZQHvblY) \
-*Note: this is designed **only** for Linux!*
+*(click on alpha-chan for a demo)* \
+[![alphaaaa](mind_ver/assets/alphaaaa_128.png)](https://youtu.be/A8TwZQHvblY) \
+*Note: this is designed **only** for Linux (so far)!*
 
 # Installation
 ## Linux
