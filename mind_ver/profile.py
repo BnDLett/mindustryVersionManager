@@ -4,6 +4,8 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
+from mindustry_settings.settings import MindustrySettings
+
 # TODO: make this proper
 MINDUSTRY_DIR = Path(f"{Path.home()}/.local/share/Mindustry/").resolve()
 if not MINDUSTRY_DIR.exists():
@@ -16,7 +18,7 @@ if not PROFILE_DATA.exists():
 PROFILE_CONFIG = configparser.ConfigParser()
 PROFILE_CONFIG.read(PROFILE_DATA)
 
-PROFILES_DIR = Path(f"{MINDUSTRY_DIR}/../mind_ver/profiles/")
+PROFILES_DIR = Path(f"{MINDUSTRY_DIR}/../mind_ver/profiles/").resolve()
 if not PROFILES_DIR.exists():
     Path(f"{MINDUSTRY_DIR}/../mind_ver").mkdir(exist_ok=True)
     PROFILES_DIR.mkdir()
@@ -29,9 +31,20 @@ class Profile:
     @staticmethod
     def new_profile(name: str) -> "Profile":
         path = Path(f"{PROFILES_DIR}/{name}")
+        settings_path = Path(f"{path}/settings.bin")
+        original_settings = MindustrySettings(Path(f"{MINDUSTRY_DIR}/settings.bin"))
+        original_settings.load()
+
         if not path.exists():
             path.mkdir()
             Path(f"{path}/PROFILE_DATA.ini").write_text(f"[profile]\nname={name}")
+
+            settings_path.touch()
+            new_settings = MindustrySettings(settings_path)
+            uuid = original_settings.get_any("uuid")
+            if type(uuid) == str:
+                new_settings.set_value("uuid", uuid)
+                new_settings.write_to_disk()
 
         return Profile(name)
 
