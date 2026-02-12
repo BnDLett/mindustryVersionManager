@@ -12,6 +12,10 @@ RELEASES_DIR = Path(f"{MINDUSTRY_DIR}/../mind_ver/releases/")
 RELEASES_DIR.mkdir(exist_ok=True)
 
 
+class MissingJarException(Exception):
+    pass
+
+
 class Release:
     name: str
     tag: str
@@ -36,7 +40,7 @@ def __retrieve_download_data(data: dict) -> tuple[str, int]:
         if asset["name"] == "Mindustry.jar":
             return asset["browser_download_url"], asset["size"]
 
-    raise Exception("Couldn't find jar asset.")
+    raise MissingJarException("Couldn't find jar asset.")
 
 
 def retrieve_releases() -> list[Release]:
@@ -51,8 +55,11 @@ def retrieve_releases() -> list[Release]:
 
     json_data = json.loads(data.content)
     for release_json in json_data:
-        release = Release(release_json["name"], release_json["tag_name"], *__retrieve_download_data(release_json))
-        releases.append(release)
+        try:
+            release = Release(release_json["name"], release_json["tag_name"], *__retrieve_download_data(release_json))
+            releases.append(release)
+        except MissingJarException:
+            print(f"Couldn't retrieve Jar asset for {release_json["tag_name"]}.")
 
     return releases
 
