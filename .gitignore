@@ -1,3 +1,7 @@
 .venv
 .idea
 mindustryVersionSwitcher/releases
+
+# Added by cargo
+
+/target

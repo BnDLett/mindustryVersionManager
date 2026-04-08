@@ -1,3 +1,0 @@
-requests~=2.32.5
-pyside6~=6.10.1
-mindustry-settings~=0.2.0

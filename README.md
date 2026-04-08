@@ -1,7 +1,7 @@
 # Mindustry Version Manager (Rust Branch)
 A program to switch between Mindustry versions and profiles \
 *(click on alpha-chan for a demo)* \
-[![alphaaaa](mind_ver/assets/alphaaaa_128.png)](https://youtu.be/A8TwZQHvblY) \
+[![alphaaaa](mindustry-version-manager/src/assets/alphaaaa_128.png)](https://youtu.be/A8TwZQHvblY) \
 *Note: this is designed **only** for Linux (so far)!*
 
 ## Goal of the Rust branch
