@@ -1,0 +1,9 @@
+[package]
+name = "mindustry-version-manager"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+reqwest = "0.13.2"
+serde = "1.0.228"
+serde_json = "1.0.149"
