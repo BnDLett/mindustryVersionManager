@@ -1,4 +1,5 @@
 mod fetcher;
+mod utils;
 
 fn main() {
 
