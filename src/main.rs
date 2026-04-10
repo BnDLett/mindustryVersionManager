@@ -1,8 +1,14 @@
+use crate::profiles::{Profile, ProfileManager};
+
 mod fetcher;
 mod utils;
+mod profiles;
 
 fn main() {
+    let manager = ProfileManager::new().unwrap();
+    let profile = Profile::create("lorem").unwrap();
 
+    manager.add(profile);
 }
 
 #[cfg(test)]
