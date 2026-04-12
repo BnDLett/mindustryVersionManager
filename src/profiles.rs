@@ -41,7 +41,7 @@ impl ProfileManager {
         Ok(manager)
     }
 
-    pub fn switch_to(&self, profile: Profile) -> Result<(), &'static str> {
+    pub fn switch_to(&self, profile: &Profile) -> Result<(), &'static str> {
         let current_profile = self.current_profile.clone().unwrap();
 
         if self.profiles.iter().find(|x| {x.name == profile.name}).is_none() {
@@ -70,8 +70,10 @@ impl ProfileManager {
         Ok(())
     }
 
-    pub fn add(&mut self, profile: Profile) {
+    pub fn add(&mut self, profile: Profile) -> &Profile {
+        let name = profile.name.clone();
         self.profiles.push(profile);
+        self.find(&*name).unwrap()
     }
 
     /// Removes a profile, but does not delete it.
@@ -83,6 +85,18 @@ impl ProfileManager {
 
         self.profiles.remove(index?);
         Ok(())
+    }
+    
+    pub fn find(&mut self, name: &str) -> Option<&Profile> {
+        if self.current_profile.clone()?.name == name { return self.current_profile.as_ref() }
+        
+        self.profiles.iter().find(|x| {
+            if x.name == name {
+                return true;
+            }
+            
+            false
+        })
     }
 
     fn load_ini(&mut self) -> Result<(), ()> {
