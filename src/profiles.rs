@@ -31,16 +31,18 @@ impl ProfileManager {
     pub fn new() -> Result<ProfileManager, String> {
         create_dir_all(PROFILES_PATH).unwrap();
 
-        let manager = ProfileManager{
+        let mut manager = ProfileManager{
             profiles: Vec::new(),
             current_profile: None,
             ini: HashMap::new()
         };
-        Ok(manager.load_ini().unwrap().add_current().unwrap())
+        manager.load_ini().unwrap();
+        manager.add_current().unwrap();
+        Ok(manager)
     }
 
-    pub fn switch_to(self, profile: Profile) -> Result<(), &'static str> {
-        let current_profile = self.current_profile.unwrap();
+    pub fn switch_to(&self, profile: Profile) -> Result<(), &'static str> {
+        let current_profile = self.current_profile.clone().unwrap();
 
         if self.profiles.iter().find(|x| {x.name == profile.name}).is_none() {
             return Err("Profile is not loaded.");
@@ -68,12 +70,12 @@ impl ProfileManager {
         Ok(())
     }
 
-    pub fn add(mut self, profile: Profile) {
+    pub fn add(&mut self, profile: Profile) {
         self.profiles.push(profile);
     }
 
     /// Removes a profile, but does not delete it.
-    pub fn remove(mut self, profile: Profile) -> Result<(), ()> {
+    pub fn remove(&mut self, profile: Profile) -> Result<(), ()> {
         let index = get_index(&self.profiles, |x: &Profile| {
             if x.name == profile.name { return true; }
             false
@@ -83,7 +85,7 @@ impl ProfileManager {
         Ok(())
     }
 
-    fn load_ini(mut self) -> Result<ProfileManager, ()> {
+    fn load_ini(&mut self) -> Result<(), ()> {
         let mut data = ini!(safe PROFILE_CONFIG);
 
         if data.is_err() {
@@ -93,17 +95,17 @@ impl ProfileManager {
 
         self.ini = data.unwrap();   // shouldn't be an error. If it still is, then something went
                                     // horribly wrong.
-        Ok(self)
+        Ok(())
     }
 
-    fn add_current(mut self) -> Result<ProfileManager, ()> {
+    fn add_current(&mut self) -> Result<(), ()> {
         let name = self.ini["profile"]["name"].clone();
         if name.is_none() { return Err(()) };
 
         let profile = Profile::new(&*name.unwrap());
         self.profiles.push(profile);
 
-        Ok(self)
+        Ok(())
     }
 
     fn generate_ini() -> Result<(), ()> {
@@ -126,6 +128,7 @@ impl ProfileManager {
     }
 }
 
+#[derive(Clone)]
 pub struct Profile {
     name: String
 }
