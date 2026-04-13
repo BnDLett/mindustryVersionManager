@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::format;
 use std::fs::{create_dir, create_dir_all, remove_dir_all, File};
 use std::io::Write;
 use std::path::{Path};
