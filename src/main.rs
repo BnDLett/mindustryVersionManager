@@ -5,10 +5,17 @@ mod utils;
 mod profiles;
 
 fn main() {
-    let manager = ProfileManager::new().unwrap();
-    let profile = Profile::create("lorem").unwrap();
+    let mut manager = ProfileManager::new().unwrap();
+    let result = Profile::create("data-176806584");
 
-    manager.add(profile);
+    let profile = if result.is_err() {
+        Profile::new("data-176806584")
+    } else {
+        result.unwrap()
+    };
+
+    let profile_ref = manager.add(profile).clone();
+    manager.switch_to(&profile_ref).unwrap();
 }
 
 #[cfg(test)]

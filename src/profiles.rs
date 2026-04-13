@@ -1,17 +1,19 @@
 use std::collections::HashMap;
+use std::fmt::format;
 use std::fs::{create_dir, create_dir_all, remove_dir_all, File};
 use std::io::Write;
-use std::path::Path;
+use std::path::{Path};
 use std::time::{SystemTime, UNIX_EPOCH};
 use ini::ini;
 use crate::apply_attrib;
 use crate::utils::{copy_tree, get_index};
 use const_format::concatcp;
+use resolve_path::PathResolveExt;
 
 apply_attrib! {
     #![cfg(target_os = "linux")]
 
-    const MINDUSTRY_PATH: &str = "~/.local/share/Mindustry/";
+    const MINDUSTRY_PATH: &str = "~/.local/share/Mindustry";
 }
 
 const PROFILE_CONFIG: &str = concatcp!(MINDUSTRY_PATH, "/PROFILE_DATA.ini");
@@ -23,17 +25,18 @@ const PROFILES_PATH: &str = concatcp!(CONFIG_PATH, "/profiles");
 
 pub struct ProfileManager {
     profiles: Vec<Profile>,
-    current_profile: Option<Profile>,
+    current_profile: String,
     ini: HashMap<String, HashMap<String, Option<String>>>
 }
 
 impl ProfileManager {
     pub fn new() -> Result<ProfileManager, String> {
-        create_dir_all(PROFILES_PATH).unwrap();
+        let profiles_path = Path::new(PROFILES_PATH);
+        create_dir_all(profiles_path.resolve()).unwrap();
 
         let mut manager = ProfileManager{
             profiles: Vec::new(),
-            current_profile: None,
+            current_profile: String::new(),
             ini: HashMap::new()
         };
         manager.load_ini().unwrap();
@@ -42,30 +45,35 @@ impl ProfileManager {
     }
 
     pub fn switch_to(&self, profile: &Profile) -> Result<(), &'static str> {
-        let current_profile = self.current_profile.clone().unwrap();
+        let current_profile = self.current_profile.clone();
 
         if self.profiles.iter().find(|x| {x.name == profile.name}).is_none() {
             return Err("Profile is not loaded.");
-        } else if profile.name == current_profile.name {
+        } else if profile.name == current_profile {
             return Ok(());
         }
 
         let target_path = &*format!("{}/{}", PROFILES_PATH, profile.name);
         let target_dir = Path::new(target_path);
-        if !target_dir.exists() || !target_dir.is_dir() {
+        let target_resolved = target_dir.resolve();
+        if !target_resolved.exists() || !target_resolved.is_dir() {
             return Err("The specified file path cannot be found.")
         }
 
-        let new_path = &*format!("{}/{}", PROFILES_PATH, current_profile.name);
+        let new_path = &*format!("{}/{}", PROFILES_PATH, current_profile);
         let new_dir = Path::new(new_path);
-        if new_dir.exists() {
+        let new_resolved = new_dir.resolve();
+        if new_resolved.exists() {
             return Err("A profile of the same name already exists (duplicate profile).");
         }
 
-        copy_tree(MINDUSTRY_PATH, new_dir).unwrap();
-        remove_dir_all(MINDUSTRY_PATH).unwrap();
-        copy_tree(target_dir, MINDUSTRY_PATH).unwrap();
-        remove_dir_all(target_dir).unwrap();
+        let mindustry = Path::new(MINDUSTRY_PATH);
+        let mindustry_resolved = mindustry.resolve();
+
+        copy_tree(mindustry_resolved.clone(), new_resolved).unwrap();
+        remove_dir_all(mindustry_resolved.clone()).unwrap();
+        copy_tree(target_resolved.clone(), mindustry_resolved).unwrap();
+        remove_dir_all(target_resolved).unwrap();
 
         Ok(())
     }
@@ -86,25 +94,25 @@ impl ProfileManager {
         self.profiles.remove(index?);
         Ok(())
     }
-    
+
     pub fn find(&mut self, name: &str) -> Option<&Profile> {
-        if self.current_profile.clone()?.name == name { return self.current_profile.as_ref() }
-        
         self.profiles.iter().find(|x| {
             if x.name == name {
                 return true;
             }
-            
+
             false
         })
     }
 
     fn load_ini(&mut self) -> Result<(), ()> {
-        let mut data = ini!(safe PROFILE_CONFIG);
+        let profile_path = Path::new(PROFILE_CONFIG);
+        let resolved = profile_path.resolve();
+        let mut data = ini!(safe resolved.to_str().unwrap());
 
         if data.is_err() {
             ProfileManager::generate_ini()?;
-            data = ini!(safe PROFILE_CONFIG);
+            data = ini!(safe resolved.to_str().unwrap());
         }
 
         self.ini = data.unwrap();   // shouldn't be an error. If it still is, then something went
@@ -117,13 +125,16 @@ impl ProfileManager {
         if name.is_none() { return Err(()) };
 
         let profile = Profile::new(&*name.unwrap());
+        self.current_profile = profile.name.clone();
         self.profiles.push(profile);
 
         Ok(())
     }
 
     fn generate_ini() -> Result<(), ()> {
-        let mut file = File::create(PROFILE_CONFIG).unwrap();
+        let path = Path::new(PROFILE_CONFIG);
+        let resolved = path.resolve();
+        let mut file = File::create(resolved).unwrap();
 
         let time = SystemTime::now().duration_since(UNIX_EPOCH);
         let mut seconds = 0u64;
@@ -131,8 +142,7 @@ impl ProfileManager {
             seconds = time.unwrap().as_secs();
         }
 
-        let name = format!("data-{}.ini", seconds);
-        let data = format!("[profile]\nname=data-{}", name);
+        let data = format!("[profile]\nname=data-{}", seconds);
         let result = file.write_all(data.as_bytes());
 
         if result.is_err() {
@@ -158,12 +168,23 @@ impl Profile {
         let profile = Profile::new(name);
         let path_str = &*format!("{}/{}", PROFILES_PATH, profile.name);
         let path = Path::new(path_str);
+        let resolved = path.resolve();
 
-        if path.exists() {
+        if resolved.exists() {
             return Err("Profile already exists.");
         }
 
-        create_dir(path).unwrap();
+        create_dir(resolved.clone()).unwrap();
+
+        let path_str = format!("{}/PROFILE_DATA.ini", resolved.to_str().unwrap());
+        let ini_path = Path::new(&*path_str);
+        let mut file = File::create(ini_path).unwrap();
+        let data = format!("[profile]\nname={}", name);
+        let result = file.write_all(data.as_bytes());
+
+        if result.is_err() {
+            return Err("Couldn't write ini data to profile (profile creation failed).");
+        }
 
         Ok(profile)
     }
