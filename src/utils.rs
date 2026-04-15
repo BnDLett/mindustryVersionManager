@@ -1,5 +1,16 @@
 use std::{fs, io};
 use std::path::Path;
+use const_format::concatcp;
+
+crate::apply_attrib! {
+    #![cfg(target_os = "linux")]
+
+    pub const MINDUSTRY_PATH: &str = "~/.local/share/Mindustry/";
+}
+
+pub const PROFILE_CONFIG: &str = concatcp!(MINDUSTRY_PATH, "/PROFILE_DATA.ini");
+pub const CONFIG_PATH: &str = concatcp!(MINDUSTRY_PATH, "/../mind_ver");
+pub const PROFILES_PATH: &str = concatcp!(CONFIG_PATH, "/profiles");
 
 // https://stackoverflow.com/a/77835585
 #[macro_export]

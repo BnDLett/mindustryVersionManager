@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::{Write};
+use std::path::Path;
 use reqwest::blocking::Client;
 use reqwest::header::USER_AGENT;
 use serde::Deserialize;
@@ -68,3 +69,27 @@ impl Asset {
         Err(None)
     }
 }
+
+pub struct Release {
+    path: Path,
+    name: String,
+}
+
+impl Release {
+    pub fn new(path: &Path, name: &String) -> Release {
+        Release {
+            path: path.clone(),
+            name: name.clone()
+        }
+    }
+}
+
+// impl From<ReleaseResponse> for Release {
+//     fn from(resp: ReleaseResponse) -> Release {
+//         let path = Path::new();
+//
+//         Release {
+//             name: resp.name
+//         }
+//     }
+// }
