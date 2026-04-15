@@ -9,7 +9,7 @@ const AGENT_NAME: &str = "Mindustry Version Manager";
 
 #[derive(Deserialize)]
 #[allow(dead_code)]
-pub struct Release {
+pub struct ReleaseResponse {
     pub url: String,
     pub tag_name: String,
     pub name: String,
@@ -21,20 +21,9 @@ pub struct Release {
     pub body: String,
 }
 
-#[derive(Deserialize)]
-#[allow(dead_code)]
-pub struct Asset {
-    pub url: String,
-    pub name: String,
-    pub size: u64,
-    pub created_at: String,
-    pub updated_at: String,
-    pub browser_download_url: String,
-}
-
-impl Release {
+impl ReleaseResponse {
     // TODO: do not panic.
-    pub fn fetch_multiple() -> Vec<Release> {
+    pub fn fetch_multiple() -> Vec<ReleaseResponse> {
         let client = Client::new();
         let response = client
             .get(RELEASES_URL)
@@ -49,6 +38,17 @@ impl Release {
         // println!("{}", response_str);
         serde_json::from_str(&*response_str).expect("Unknown error.")
     }
+}
+
+#[derive(Deserialize)]
+#[allow(dead_code)]
+pub struct Asset {
+    pub url: String,
+    pub name: String,
+    pub size: u64,
+    pub created_at: String,
+    pub updated_at: String,
+    pub browser_download_url: String,
 }
 
 impl Asset {

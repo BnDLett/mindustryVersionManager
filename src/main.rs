@@ -1,6 +1,6 @@
 use crate::profiles::{Profile, ProfileManager};
 
-mod fetcher;
+mod releases;
 mod utils;
 mod profiles;
 
@@ -22,7 +22,7 @@ fn main() {
 mod tests {
     use std::fs::{remove_file, File};
     use std::os::unix::fs::MetadataExt;
-    use crate::fetcher::Release;
+    use crate::releases::Release;
     #[test]
     fn get_releases() {
         let releases = Release::fetch_multiple();
