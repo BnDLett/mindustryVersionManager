@@ -4,20 +4,8 @@ use std::io::Write;
 use std::path::{Path};
 use std::time::{SystemTime, UNIX_EPOCH};
 use ini::ini;
-use crate::apply_attrib;
 use crate::utils::{copy_tree, get_index};
-use const_format::concatcp;
 use resolve_path::PathResolveExt;
-
-apply_attrib! {
-    #![cfg(target_os = "linux")]
-
-    const MINDUSTRY_PATH: &str = "~/.local/share/Mindustry";
-}
-
-const PROFILE_CONFIG: &str = concatcp!(MINDUSTRY_PATH, "/PROFILE_DATA.ini");
-const CONFIG_PATH: &str = concatcp!(MINDUSTRY_PATH, "/../mind_ver");
-const PROFILES_PATH: &str = concatcp!(CONFIG_PATH, "/profiles");
 
 // #[cfg(target_os = "windows", target_os = "android")]
 // compile_error!("The selected OS is not supported.");
