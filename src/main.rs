@@ -22,10 +22,10 @@ fn main() {
 mod tests {
     use std::fs::{remove_file, File};
     use std::os::unix::fs::MetadataExt;
-    use crate::releases::Release;
+    use crate::releases::ReleaseResponse;
     #[test]
     fn get_releases() {
-        let releases = Release::fetch_multiple();
+        let releases = ReleaseResponse::fetch_multiple();
         assert_ne!(releases[0].url, "");
     }
 
@@ -35,7 +35,7 @@ mod tests {
 
         println!("Downloading jar...");
 
-        let releases = Release::fetch_multiple();
+        let releases = ReleaseResponse::fetch_multiple();
         let mut file_asset = None;
 
         for asset in &releases[0].assets {

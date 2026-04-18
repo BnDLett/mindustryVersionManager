@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::{Path};
 use std::time::{SystemTime, UNIX_EPOCH};
 use ini::ini;
-use crate::utils::{copy_tree, get_index};
+use crate::utils::{copy_tree, get_index, MINDUSTRY_PATH, PROFILES_PATH, PROFILE_CONFIG};
 use resolve_path::PathResolveExt;
 
 // #[cfg(target_os = "windows", target_os = "android")]

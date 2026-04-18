@@ -70,15 +70,15 @@ impl Asset {
     }
 }
 
-pub struct Release {
-    path: Path,
+pub struct Release<'a> {
+    path: &'a Path,
     name: String,
 }
 
-impl Release {
-    pub fn new(path: &Path, name: &String) -> Release {
+impl Release<'_> {
+    pub fn new<'a>(path: &'a Path, name: &String) -> Release<'a> {
         Release {
-            path: path.clone(),
+            path,
             name: name.clone()
         }
     }
