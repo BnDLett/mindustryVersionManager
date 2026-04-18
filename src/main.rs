@@ -1,21 +1,34 @@
 use crate::profiles::{Profile, ProfileManager};
+use crate::releases::{Release, ReleaseResponse};
 
 mod releases;
 mod utils;
 mod profiles;
 
 fn main() {
-    let mut manager = ProfileManager::new().unwrap();
-    let result = Profile::create("data-176806584");
+    // let mut manager = ProfileManager::new().unwrap();
+    // let result = Profile::create("data-176806584");
+    //
+    // let profile = if result.is_err() {
+    //     Profile::new("data-176806584")
+    // } else {
+    //     result.unwrap()
+    // };
+    //
+    // let profile_ref = manager.add(profile).clone();
+    // manager.switch_to(&profile_ref).unwrap();
 
-    let profile = if result.is_err() {
-        Profile::new("data-176806584")
-    } else {
-        result.unwrap()
-    };
+    let result = ReleaseResponse::fetch_multiple();
+    let mut releases = Vec::with_capacity(result.len());
 
-    let profile_ref = manager.add(profile).clone();
-    manager.switch_to(&profile_ref).unwrap();
+    for response in &result[0..2] {
+        // response.desktop_asset().unwrap().download_default(&response.tag_name).unwrap();
+        releases.push(Release::from(response.to_owned()));
+    }
+
+    for release in releases {
+        release.launch().expect("neeeeeeerd");
+    }
 }
 
 #[cfg(test)]

@@ -1,12 +1,17 @@
 use std::fs::File;
 use std::io::{Write};
 use std::path::Path;
+use std::process::{Command, Output};
+use const_format::concatcp;
 use reqwest::blocking::Client;
 use reqwest::header::USER_AGENT;
+use resolve_path::PathResolveExt;
 use serde::Deserialize;
+use crate::utils::CONFIG_PATH;
 
 const RELEASES_URL: &str = "https://api.github.com/repos/anuken/mindustry/releases";
 const AGENT_NAME: &str = "Mindustry Version Manager";
+const RELEASES_PATH: &str = concatcp!(CONFIG_PATH, "/releases");
 
 #[derive(Deserialize)]
 #[allow(dead_code)]
@@ -39,6 +44,16 @@ impl ReleaseResponse {
         // println!("{}", response_str);
         serde_json::from_str(&*response_str).expect("Unknown error.")
     }
+
+    pub fn desktop_asset(&self) -> Option<&Asset> {
+        for asset in &self.assets {
+            if asset.name != "Mindustry.jar" { continue; }
+
+            return Some(asset);
+        }
+
+        None
+    }
 }
 
 #[derive(Deserialize)]
@@ -68,28 +83,57 @@ impl Asset {
 
         Err(None)
     }
-}
 
-pub struct Release<'a> {
-    path: &'a Path,
-    name: String,
-}
+    /// Downloads the asset to a default path.
+    pub(crate) fn download_default(&self, name: &String) -> Result<(), Option<reqwest::Error>> {
+        let path_str = &*format!("{}/{}.jar", RELEASES_PATH, &*name);
+        let path = Path::new(path_str);
+        let resolved = path.resolve();
 
-impl Release<'_> {
-    pub fn new<'a>(path: &'a Path, name: &String) -> Release<'a> {
-        Release {
-            path,
-            name: name.clone()
-        }
+        let file_result = File::create(resolved);
+        if file_result.is_err() { return Err(None) }
+        let file = file_result.unwrap();
+
+        self.download(&file)
     }
 }
 
-// impl From<ReleaseResponse> for Release {
-//     fn from(resp: ReleaseResponse) -> Release {
-//         let path = Path::new();
-//
-//         Release {
-//             name: resp.name
-//         }
-//     }
-// }
+pub struct Release {
+    path: String,
+    name: String,
+}
+
+impl Release {
+    pub fn new<'a>(path: &String, name: &String) -> Release {
+        Release {
+            path: path.clone(),
+            name: name.clone()
+        }
+    }
+
+    pub fn launch(&self) -> std::io::Result<Output> {
+        let path = Path::new(&*self.path);
+        // Command::new("chmod")
+        //     .arg("+x")
+        //     .arg(path)
+        //     .output()?;
+        Command::new("java")
+            .arg("-jar")
+            .arg(path)
+            .output()
+    }
+}
+
+// lifetimes are a mf
+impl From<&ReleaseResponse> for Release {
+    fn from(resp: &ReleaseResponse) -> Release {
+        let path_str = &*format!("{}/{}.jar", RELEASES_PATH, &*resp.tag_name);
+        let path = Path::new(path_str);
+        let resolved = path.resolve();
+
+        Release {
+            name: resp.name.clone(),
+            path: String::from(resolved.to_str().unwrap())
+        }
+    }
+}
